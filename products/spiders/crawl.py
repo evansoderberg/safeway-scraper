@@ -9,7 +9,7 @@ from scrapy.spiders import Rule
 from ..items import SafewayItem
 
 
-class CrawlSpider(InitSpider):
+class SafewayCrawlSpider(InitSpider):
     name = "safeway"
     login_page = 'https://shop.safeway.com/ecom/account/sign-in/'
     allowed_domains = ["shop.safeway.com"]
@@ -83,16 +83,17 @@ class CrawlSpider(InitSpider):
                 tree = html.fromstring(sel.extract())
                 json_data = tree.xpath('//script')[0].text
                 data = json.loads(json_data)
+                item_id = data.get('Id')
+                image_url = 'http://shop.safeway.com/productimages/200x200/{0}_200x200.jpg'.format(item_id)
                 item = SafewayItem()
-                item['item_id'] = data.get('Id')
+                item['item_id'] = item_id
                 item['name'] = data.get('Description')
                 item['price'] = data.get('Price')
+                item['price_description'] = data.get('PriceDescription')
                 item['unit_price'] = data.get('PricePerSellingUnit')
-                # item['image'] = sel.xpath('img').extract()
+                item['image_url'] = image_url
                 item['category_link'] = response.url
                 item['zip_code'] = self.zip_code
                 yield item
             except Exception as e:
-                print "Error"
                 print sel
-                print e
